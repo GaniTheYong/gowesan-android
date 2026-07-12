@@ -23,6 +23,8 @@ import com.gowesan.app.ui.article.ArticleDetailScreen
 import com.gowesan.app.ui.community.CommunityDetailScreen
 import com.gowesan.app.ui.profile.EditProfileScreen
 import com.gowesan.app.ui.home.SearchScreen
+import com.gowesan.app.ui.browse.PlacesBrowseScreen
+import com.gowesan.app.ui.browse.ArticlesBrowseScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,6 +165,11 @@ fun GowesanNavGraph() {
 
             // Search
             composable(Screen.Search.route) { SearchScreen(navController) }
+
+            // Browse all
+            composable(Screen.Listings.route) { HomeScreen(navController) }
+            composable(Screen.Places.route) { PlacesBrowseScreen(navController) }
+            composable(Screen.Articles.route) { ArticlesBrowseScreen(navController) }
 
             // Auth dashboard (for non-logged-in transaction access)
             composable(Screen.AuthDashboard.route) {
