@@ -28,6 +28,7 @@ import com.gowesan.app.data.model.Listing
 import com.gowesan.app.data.model.ReportRequest
 import com.gowesan.app.data.repository.GowesanRepository
 import com.gowesan.app.navigation.Screen
+import com.gowesan.app.ui.home.formatPrice
 import com.gowesan.app.ui.theme.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +54,18 @@ class ListingDetailViewModel @Inject constructor(private val repo: GowesanReposi
                 else _error.value = "Gagal memuat listing"
             } catch (e: Exception) { _error.value = e.localizedMessage }
             _loading.value = false
+        }
+    }
+
+    fun report(listingId: String, name: String, desc: String) {
+        viewModelScope.launch {
+            try { repo.reportListing(listingId, name, "", desc) } catch (_: Exception) {}
+        }
+    }
+
+    fun submitRating(listingId: String, rating: Int, testimoni: String) {
+        viewModelScope.launch {
+            try { repo.rateSeller(listingId, rating, testimoni) } catch (_: Exception) {}
         }
     }
 
@@ -272,11 +285,7 @@ fun ListingDetailScreen(navController: NavController, listingId: String,
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.viewModelScope.launch {
-                        try {
-                            viewModel.repo.reportListing(l.id, reportName, "", reportDesc)
-                        } catch (_: Exception) {}
-                    }
+                    viewModel.report(l.id, reportName, reportDesc)
                     showReportDialog = false
                 }) { Text("Kirim") }
             },
@@ -307,9 +316,7 @@ fun ListingDetailScreen(navController: NavController, listingId: String,
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.viewModelScope.launch {
-                        try { viewModel.repo.rateSeller(l.id, rating, testimoni) } catch (_: Exception) {}
-                    }
+                    viewModel.submitRating(l.id, rating, testimoni)
                     showRateDialog = false
                 }) { Text("Kirim") }
             },

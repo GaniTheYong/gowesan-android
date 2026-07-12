@@ -1,5 +1,6 @@
 package com.gowesan.app.ui.listing
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -28,6 +29,7 @@ import com.gowesan.app.data.model.Listing
 import com.gowesan.app.data.model.Owner
 import com.gowesan.app.data.repository.GowesanRepository
 import com.gowesan.app.navigation.Screen
+import com.gowesan.app.ui.home.formatPrice
 import com.gowesan.app.ui.theme.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

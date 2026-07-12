@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,8 +104,13 @@ fun FeedScreen(navController: NavController, viewModel: FeedViewModel = hiltView
         )
 
         TabRow(selectedTabIndex = tabIndex, containerColor = DarkSurface,
-            contentColor = TokopediaGreen, indicator = { TabRowDefaults.SecondaryIndicator(
-                Modifier.tabIndicatorOffset(tabIndex), color = TokopediaGreen) }) {
+            contentColor = TokopediaGreen,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[tabIndex]),
+                    color = TokopediaGreen
+                )
+            }) {
             tabs.forEachIndexed { i, name ->
                 Tab(selected = tabIndex == i, onClick = { tabIndex = i },
                     text = { Text(name) })
