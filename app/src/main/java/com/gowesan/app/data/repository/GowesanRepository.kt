@@ -16,6 +16,7 @@ class GowesanRepository @Inject constructor(private val api: GowesanApi) {
     suspend fun login(username: String, password: String) = api.login(LoginRequest(username, password))
     suspend fun register(username: String, password: String, displayName: String, email: String?, phone: String?) =
         api.register(RegisterRequest(username, password, displayName, email, phone))
+    suspend fun googleLogin(idToken: String) = api.googleLogin(mapOf("id_token" to idToken))
     suspend fun logout() = api.logout()
     suspend fun getMe() = api.getMe()
     suspend fun updateProfile(body: ProfileUpdateRequest) = api.updateProfile(body)

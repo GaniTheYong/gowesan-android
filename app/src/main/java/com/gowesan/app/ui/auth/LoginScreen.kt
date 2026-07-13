@@ -1,8 +1,14 @@
 package com.gowesan.app.ui.auth
 
+import android.app.Activity
+import android.content.Intent
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -11,15 +17,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.gowesan.app.R
 import com.gowesan.app.data.api.SessionManager
 import com.gowesan.app.data.repository.GowesanRepository
 import com.gowesan.app.navigation.Screen
@@ -31,6 +44,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// Google Web Client ID — server pakai ini buat verify token
+private const val GOOGLE_SERVER_CLIENT_ID = "816741676224-tk5br58pv8qbqe9bplaoe3v4tasgdn41.apps.googleusercontent.com"
+
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repo: GowesanRepository,
@@ -40,6 +56,8 @@ class AuthViewModel @Inject constructor(
     val loading: StateFlow<Boolean> = _loading
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+    fun setError(msg: String?) { _error.value = msg }
 
     fun login(username: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
@@ -55,6 +73,26 @@ class AuthViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.e("GowesanAuth", "Login error: ${e.message}", e)
+                _error.value = "Koneksi error (${e.message ?: "timeout"})"
+            }
+            _loading.value = false
+        }
+    }
+
+    fun googleLogin(idToken: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _loading.value = true; _error.value = null
+            try {
+                val r = repo.googleLogin(idToken)
+                if (r.isSuccessful && r.body() != null) {
+                    val u = r.body()!!
+                    session.saveLogin(u.id, u.username, u.displayName)
+                    onSuccess()
+                } else {
+                    _error.value = "Login Google gagal. Coba lagi."
+                }
+            } catch (e: Exception) {
+                Log.e("GowesanAuth", "Google login error: ${e.message}", e)
                 _error.value = "Koneksi error (${e.message ?: "timeout"})"
             }
             _loading.value = false
@@ -90,6 +128,28 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = hiltVie
     var password by remember { mutableStateOf("") }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val context = LocalContext.current
+
+    // Google Sign-In launcher
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val idToken = account.idToken
+                if (idToken != null) {
+                    viewModel.googleLogin(idToken) { navController.popBackStack() }
+                } else {
+                    viewModel.setError("Gagal mendapatkan token Google.")
+                }
+            } catch (e: ApiException) {
+                Log.e("GowesanAuth", "Google sign-in failed: ${e.statusCode}", e)
+                viewModel.setError("Login Google dibatalkan.")
+            }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -102,10 +162,48 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = hiltVie
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.Center) {
 
+            // Logo
+            Image(
+                painter = painterResource(id = R.drawable.logo_gowesan),
+                contentDescription = "Gowesan",
+                modifier = Modifier.fillMaxWidth().height(80.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
             Text("Selamat Datang di Gowesan", fontWeight = FontWeight.Bold,
-                fontSize = 20.sp, color = TokopediaGreen)
-            Text("Komunitas Pesepeda Indonesia", color = TextSecondary)
-            Spacer(modifier = Modifier.height(24.dp))
+                fontSize = 20.sp, color = TokopediaGreen, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth())
+            Text("Komunitas Pesepeda Indonesia", color = TextSecondary,
+                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Google Sign-In
+            OutlinedButton(
+                onClick = {
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(GOOGLE_SERVER_CLIENT_ID)
+                        .requestEmail()
+                        .build()
+                    val client = GoogleSignIn.getClient(context, gso)
+                    googleSignInLauncher.launch(client.signInIntent)
+                },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
+                enabled = !loading
+            ) {
+                Icon(painter = painterResource(id = R.drawable.ic_google),
+                    contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Lanjutkan dengan Google", fontSize = 14.sp)
+            }
+
+            // Divider
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = TextSecondary.copy(alpha = 0.3f))
+                Text(" atau ", color = TextSecondary, fontSize = 12.sp)
+                HorizontalDivider(modifier = Modifier.weight(1f), color = TextSecondary.copy(alpha = 0.3f))
+            }
 
             OutlinedTextField(value = username, onValueChange = { username = it },
                 label = { Text("Username") }, modifier = Modifier.fillMaxWidth(),

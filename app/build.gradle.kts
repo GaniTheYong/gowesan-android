@@ -78,6 +78,9 @@ dependencies {
     // Swipe refresh
     implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+
     // Paging
     implementation("androidx.paging:paging-compose:3.2.1")
 

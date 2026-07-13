@@ -14,6 +14,9 @@ interface GowesanApi {
     @POST("auth/api/register")
     suspend fun register(@Body body: RegisterRequest): Response<User>
 
+    @POST("auth/api/google-login")
+    suspend fun googleLogin(@Body body: Map<String, String>): Response<User>
+
     @POST("auth/api/logout")
     suspend fun logout(): Response<ApiResponse>
 
