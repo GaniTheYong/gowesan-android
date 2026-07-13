@@ -24,7 +24,7 @@ data class Listing(
     val status: String = "draft",
     @SerializedName("online_store_url") val onlineStoreUrl: String? = null,
     @SerializedName("primary_photo") val primaryPhoto: String? = null,
-    val photos: List<ListingPhoto>? = null,
+    val photos: List<String>? = null,
     val videos: List<ListingVideo>? = null,
     val owner: Owner? = null,
     @SerializedName("like_count") val likeCount: Int = 0,
@@ -106,14 +106,19 @@ data class Article(
     val id: String = "",
     val title: String = "",
     val content: String = "",
-    @SerializedName("thumbnail_url") val thumbnailUrl: String? = null,
+    @SerializedName("image_1") val thumbnailUrl: String? = null,
+    @SerializedName("image_2") val image2: String? = null,
+    @SerializedName("image_3") val image3: String? = null,
+    @SerializedName("youtube_embed") val youtubeEmbed: String? = null,
+    val category: String = "",
     @SerializedName("author_name") val authorName: String? = null,
     @SerializedName("author_avatar") val authorAvatar: String? = null,
     val status: String = "draft",
     @SerializedName("like_count") val likeCount: Int = 0,
+    @SerializedName("dislike_count") val dislikeCount: Int = 0,
     @SerializedName("comment_count") val commentCount: Int = 0,
+    @SerializedName("view_count") val viewCount: Int = 0,
     @SerializedName("created_at") val createdAt: String? = null,
-    val author: Owner? = null,
     val comments: List<Comment>? = null
 )
 
@@ -219,14 +224,16 @@ data class CreditTransaction(
 
 data class Place(
     val id: String = "",
-    val name: String = "",
+    @SerializedName("title") val name: String = "",
     val address: String? = null,
     val city: String? = null,
     val category: String? = null,
-    @SerializedName("thumbnail_url") val thumbnailUrl: String? = null,
-    val rating: Float? = null,
+    val photos: List<String>? = null,
+    @SerializedName("avg_rating") val rating: Float? = null,
     val description: String? = null
-)
+) {
+    val thumbnailUrl: String? get() = photos?.firstOrNull()
+}
 data class PlaceResponse(val places: List<Place> = emptyList())
 data class PlaceDetailResponse(val place: Place)
 data class SaranRequest(

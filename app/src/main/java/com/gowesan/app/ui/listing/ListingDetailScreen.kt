@@ -123,7 +123,7 @@ fun ListingDetailScreen(navController: NavController, listingId: String,
         // Gallery
         if (l.photos?.isNotEmpty() == true) {
             AsyncImage(
-                model = l.photos.first().photoUrl,
+                model = l.photos.first(),
                 contentDescription = l.title,
                 modifier = Modifier.fillMaxWidth().aspectRatio(1f),
                 contentScale = ContentScale.Crop

@@ -1,5 +1,6 @@
 package com.gowesan.app.ui.auth
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -52,7 +53,10 @@ class AuthViewModel @Inject constructor(
                 } else {
                     _error.value = "Login gagal. Periksa username/password."
                 }
-            } catch (e: Exception) { _error.value = "Koneksi error" }
+            } catch (e: Exception) {
+                Log.e("GowesanAuth", "Login error: ${e.message}", e)
+                _error.value = "Koneksi error (${e.message ?: "timeout"})"
+            }
             _loading.value = false
         }
     }
@@ -70,7 +74,10 @@ class AuthViewModel @Inject constructor(
                 } else {
                     _error.value = "Registrasi gagal. Username mungkin sudah dipakai."
                 }
-            } catch (e: Exception) { _error.value = "Koneksi error" }
+            } catch (e: Exception) {
+                Log.e("GowesanAuth", "Register error: ${e.message}", e)
+                _error.value = "Koneksi error (${e.message ?: "timeout"})"
+            }
             _loading.value = false
         }
     }

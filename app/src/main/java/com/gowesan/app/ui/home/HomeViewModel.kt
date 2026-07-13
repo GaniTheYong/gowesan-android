@@ -1,5 +1,6 @@
 package com.gowesan.app.ui.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gowesan.app.data.model.Article
@@ -51,9 +52,10 @@ class HomeViewModel @Inject constructor(
                     isLoading = false
                 )
             } catch (e: Exception) {
+                Log.e("GowesanHome", "Load error: ${e.message}", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Gagal memuat data. Periksa koneksi Anda."
+                    error = "Gagal memuat data (${e.message ?: "koneksi"}). Coba lagi."
                 )
             }
         }
